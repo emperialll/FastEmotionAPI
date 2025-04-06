@@ -1,7 +1,3 @@
-Below is a comprehensive `README.md` file written in Markdown for your project. It includes an overview, setup instructions, usage examples, API endpoints, and other relevant details based on your provided code.
-
----
-
 # Fast Emotion API
 
 A simple FastAPI-based application that analyzes the emotional tone of user messages using the Twinword Emotion Analysis API and responds with a tailored reply. This project detects emotions like joy, surprise, anger, fear, sadness, and disgust, and generates human-like responses based on the dominant emotion.
@@ -153,7 +149,3 @@ Feel free to submit issues or pull requests! Suggestions for new features (e.g.,
 ## License
 
 This project is unlicensed—free to use, modify, and distribute as you see fit.
-
----
-
-This `README.md` provides a clear, professional overview of your project, with enough detail for someone to set it up and use it. Let me know if you’d like to adjust anything!
