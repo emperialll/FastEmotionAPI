@@ -4,7 +4,11 @@ import requests
 from dotenv import load_dotenv
 
 
-# Function to connect with Twinword Emotion Analysis API
+# Load environment variables from the .env file
+load_dotenv()
+
+
+# Function to connect with Twinword Emotion Analysis
 def detect_emotion(user_message):
     """
     Sends a user's message to the Twinword Emotion Analysis API and returns detected emotions.
