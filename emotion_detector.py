@@ -2,6 +2,18 @@ import requests
 
 
 def detect_emotion(user_message):
+    """
+    Sends a user's message to the Twinword Emotion Analysis API and returns detected emotions.
+    Args: user_message (str): The user's message to analyze.
+    Returns: dict: A JSON response from the API containing detected emotions and metadata.
+
+    Example response:
+        {
+            "result_code": "200",
+            "emotions_detected": ["joy"],
+            ...
+        }
+    """
     url = "https://twinword-emotion-analysis-v1.p.rapidapi.com/analyze/"
 
     payload = {"text": user_message}
