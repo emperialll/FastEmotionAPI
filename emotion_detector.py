@@ -1,6 +1,10 @@
+"""Imports"""
+import os
 import requests
+from dotenv import load_dotenv
 
 
+# Function to connect with Twinword Emotion Analysis API
 def detect_emotion(user_message):
     """
     Sends a user's message to the Twinword Emotion Analysis API and returns detected emotions.
@@ -18,8 +22,8 @@ def detect_emotion(user_message):
 
     payload = {"text": user_message}
     headers = {
-        "x-rapidapi-key": "a8bee05d6emshdc1205e1fd41c9dp1c50c2jsn387c810cebfb",
-        "x-rapidapi-host": "twinword-emotion-analysis-v1.p.rapidapi.com",
+        "x-rapidapi-key": os.getenv("RAPIDAPI_KEY"),
+        "x-rapidapi-host": os.getenv("RAPIDAPI_HOST"),
         "Content-Type": "application/x-www-form-urlencoded"
     }
 
