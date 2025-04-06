@@ -23,8 +23,7 @@ A simple FastAPI-based application that analyzes the emotional tone of user mess
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/yourusername/fast-emotion-api.git
-   cd fast-emotion-api
+   git clone https://github.com/emperialll/FastEmotionAPI.git
    ```
 
 2. **Set Up a Virtual Environment** (optional but recommended):
