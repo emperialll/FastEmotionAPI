@@ -4,9 +4,11 @@ from fastapi import FastAPI
 import uvicorn
 from pydantic import BaseModel
 from emotion_detector import detect_emotion
+from db_manager import init_db, save_interaction
 
 
 app = FastAPI()
+init_db()
 
 
 class UserInput(BaseModel):
@@ -46,22 +48,26 @@ def read_root():
 
 
 @app.post("/conversation")
-async def checkEmotion(user_input: UserInput) -> Union[str, dict]:
+async def checkEmotion(user_input: UserInput) -> dict:
     """
-    Endpoint to analyze user input and return a response based on detected emotion.
+    Endpoint to analyze user input and return a response based on detected emotions.
     Args: user_input (UserInput): The input message from the user.
-    Returns: Union[str, dict]: A string reply based on the emotion detected, 
-             or a dict containing an error message.
+    Returns: dict: A dictionary with the detected emotions and combined response, or an error message.
     """
     try:
         user_emotion = detect_emotion(user_input.message)
         if user_emotion.get("result_code") == "200":
             emotions = user_emotion.get("emotions_detected", [])
             if emotions:
-                response_to_user = generate_reply(emotions[0])
-                return response_to_user
+                # Combine responses for all detected emotions
+                response_to_user = " ".join(
+                    generate_reply(emotion) for emotion in emotions)
+                # Save the interaction to the database
+                save_interaction(user_input.message,
+                                 emotions, response_to_user)
+                return {"emotions": emotions, "response": response_to_user}
             else:
-                return "Hmm... I can't quite read the vibe. Want to try saying it another way?"
+                return {"response": "Hmm... I can't quite read the vibe. Want to try saying it another way?"}
         else:
             return {"error": "Could not detect emotion."}
     except Exception as e:
