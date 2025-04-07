@@ -16,8 +16,11 @@ A robust FastAPI-based application that analyzes the emotional tone of user mess
 - **Python**: Version 3.8 or higher (for local runs).
 - **Docker**: Docker and Docker Compose (for containerized runs).
 - **API Key**: A valid RapidAPI key for the Twinword Emotion Analysis API (sign up at [RapidAPI](https://rapidapi.com/twinword/api/emotion-analysis-v1)).
+- **PostgreSQL**: Required for local runs (e.g., version 16).
 
-## Installation (Local)
+## Initial Setup
+
+These steps are required whether you plan to run the app locally or with Docker.
 
 1. **Clone the Repository**:
 
@@ -26,64 +29,86 @@ A robust FastAPI-based application that analyzes the emotional tone of user mess
    cd FastEmotionAPI
    ```
 
-2. **Set Up a Virtual Environment** (optional but recommended):
+2. **Create and Configure the `.env` File**:
+   - Copy the example file:
+     ```bash
+     cp .env.example .env
+     ```
+   - Open `.env` in a text editor and fill in your credentials:
+     ```
+     RAPIDAPI_KEY=your_api_key_here           # Your RapidAPI key from RapidAPI
+     RAPIDAPI_HOST=twinword-emotion-analysis-v1.p.rapidapi.com
+     DB_PASSWORD=your_postgres_password_here  # Password for PostgreSQL (used locally and in Docker)
+     ```
+   - Save the file. This `.env` file is loaded by both local and Docker setups.
+
+## Running Locally
+
+Follow these steps to run the app on your local machine with a local PostgreSQL instance.
+
+1. **Set Up a Virtual Environment** (optional but recommended):
 
    ```bash
    python -m venv venv
    source venv/bin/activate  # On Windows: venv\Scripts\activate
    ```
 
-3. **Install Dependencies**:
+2. **Install Dependencies**:
 
    ```bash
    pip install -r requirements.txt
    ```
 
-4. **Configure Environment Variables**:
+3. **Set Up PostgreSQL**:
 
-   - Copy `.env.example` to `.env`:
+   - Install PostgreSQL locally (e.g., version 16) if not already installed:
+     - Windows: Download from [postgresql.org](https://www.postgresql.org/download/windows/).
+     - Mac: `brew install postgresql@16`.
+     - Linux: `sudo apt install postgresql postgresql-contrib`.
+   - Start PostgreSQL:
+     - Mac: `brew services start postgresql@16`.
+     - Linux: `sudo systemctl start postgresql`.
+   - Create the database:
      ```bash
-     cp .env.example .env
+     psql -U postgres -c "CREATE DATABASE emotion_api_db;"
      ```
-   - Edit `.env` with your RapidAPI key and PostgreSQL password:
-     ```
-     RAPIDAPI_KEY=your_api_key_here
-     RAPIDAPI_HOST=twinword-emotion-analysis-v1.p.rapidapi.com
-     DB_PASSWORD=your_postgres_password_here
-     ```
+   - Ensure your `DB_PASSWORD` in `.env` matches your local PostgreSQL `postgres` user password.
 
-5. **Set Up PostgreSQL Locally**:
-   - Install PostgreSQL (e.g., version 16) and ensure it’s running.
-   - Create a database: `psql -U postgres -c "CREATE DATABASE emotion_api_db;"`
-
-## Running Locally
-
-Start the FastAPI server:
-
-```bash
-python main.py
-```
-
-The API will be available at `http://127.0.0.1:8000`, with Swagger UI at `http://127.0.0.1:8000/docs`.
-
-## Docker Setup
-
-To run the application with Docker Compose:
-
-1. **Prerequisites**: Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
-2. **Configure Environment**: Ensure `.env` is set up with `RAPIDAPI_KEY`, `RAPIDAPI_HOST`, and `DB_PASSWORD`.
-3. **Build and Run**:
+4. **Start the Application**:
    ```bash
-   docker-compose up --build
+   python main.py
    ```
-   - Access the API at `http://127.0.0.1:8000`.
+   - The API will be available at `http://127.0.0.1:8000`.
+   - Access Swagger UI at `http://127.0.0.1:8000/docs`.
+
+## Running with Docker
+
+Follow these steps to run the app in a containerized environment using Docker Compose.
+
+1. **Install Docker and Docker Compose**:
+
+   - Download [Docker Desktop](https://www.docker.com/products/docker-desktop) (Windows/Mac) or follow [Linux instructions](https://docs.docker.com/engine/install/).
+   - Verify: `docker --version` and `docker-compose --version`.
+
+2. **Build and Run**:
+
+   - Ensure your `.env` file is set up (from Initial Setup).
+   - Run:
+     ```bash
+     docker-compose up --build
+     ```
+   - This builds the FastAPI app container and starts a PostgreSQL container.
+   - The API will be available at `http://127.0.0.1:8000`.
    - Test with:
      ```bash
      curl -X POST "http://127.0.0.1:8000/conversation" -H "Content-Type: application/json" -d '{"message": "I feel great!"}'
      ```
-4. **Stop**: Press `Ctrl+C`, then:
-   - Keep data: `docker-compose down`
-   - Reset data: `docker-compose down -v`
+
+3. **Stop the Application**:
+   - Press `Ctrl+C` in the terminal.
+   - Clean up:
+     - Keep data: `docker-compose down`
+     - Reset data: `docker-compose down -v`
 
 ## API Endpoints
 
