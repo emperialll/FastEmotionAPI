@@ -76,11 +76,30 @@ Follow these steps to run the app on your local machine with a local PostgreSQL 
    - Ensure your `DB_PASSWORD` in `.env` matches your local PostgreSQL `postgres` user password.
 
 4. **Start the Application**:
+
    ```bash
    python main.py
    ```
+
    - The API will be available at `http://127.0.0.1:8000`.
    - Access Swagger UI at `http://127.0.0.1:8000/docs`.
+
+5. **Check Saved Data in the Database**:
+   - After sending requests to `/conversation`, verify the stored interactions:
+     ```bash
+     psql -U postgres -d emotion_api_db
+     ```
+   - Run:
+     ```sql
+     SELECT * FROM interactions;
+     ```
+   - Example output:
+     ```
+      id | message              | emotion | response                     | timestamp
+     ----+----------------------+---------+------------------------------+-------------------------
+      1  | I just won the lottery! | joy     | That's awesome! Pure happiness! | 2025-04-07 ...
+     ```
+   - Exit with: `\q`
 
 ## Running with Docker
 
@@ -105,8 +124,33 @@ Follow these steps to run the app in a containerized environment using Docker Co
      curl -X POST "http://127.0.0.1:8000/conversation" -H "Content-Type: application/json" -d '{"message": "I feel great!"}'
      ```
 
-3. **Stop the Application**:
-   - Press `Ctrl+C` in the terminal.
+3. **Check Saved Data in the Database**:
+
+   - While the app is running, open a new terminal.
+   - Find the PostgreSQL container name:
+     ```bash
+     docker ps
+     ```
+     - Look for the `postgres:16` image (e.g., `fastemotionapi_db_1`).
+   - Access the database:
+     ```bash
+     docker exec -it <container_name> psql -U postgres -d emotion_api_db
+     ```
+     - Replace `<container_name>` with the actual name (e.g., `fastemotionapi_db_1`).
+   - Run:
+     ```sql
+     SELECT * FROM interactions;
+     ```
+   - Example output:
+     ```
+      id | message              | emotion | response                     | timestamp
+     ----+----------------------+---------+------------------------------+-------------------------
+      1  | I feel great!        | joy     | That's awesome! Pure happiness! | 2025-04-07 ...
+     ```
+   - Exit with: `\q`
+
+4. **Stop the Application**:
+   - Press `Ctrl+C` in the `docker-compose` terminal.
    - Clean up:
      - Keep data: `docker-compose down`
      - Reset data: `docker-compose down -v`
