@@ -1,25 +1,29 @@
 # Fast Emotion API
 
-A simple FastAPI-based application that analyzes the emotional tone of user messages using the Twinword Emotion Analysis API and responds with a tailored reply. This project detects emotions like joy, surprise, anger, fear, sadness, and disgust, and generates human-like responses based on the dominant emotion.
+A robust FastAPI-based application that analyzes the emotional tone of user messages using the Twinword Emotion Analysis API, generates tailored replies, and persists interactions in a PostgreSQL database. This project detects emotions like joy, surprise, anger, fear, sadness, and disgust, supports multiple emotions per message, and runs seamlessly in a Dockerized environment.
 
 ## Features
 
-- **Emotion Detection**: Leverages the Twinword Emotion Analysis API to identify emotions in text.
-- **Dynamic Responses**: Returns predefined, emotion-specific replies (e.g., "That's awesome!" for joy).
-- **RESTful API**: Built with FastAPI, offering easy-to-use endpoints.
-- **Environment Variables**: Securely manages API keys using a `.env` file.
+- **Emotion Detection**: Uses the Twinword Emotion Analysis API to identify single or multiple emotions in text.
+- **Dynamic Responses**: Generates rule-based replies, combining responses for multiple emotions (e.g., "That's awesome! Pure happiness! Whoa! Didn't expect that!" for joy and surprise).
+- **Database Storage**: Saves each interaction (message, emotions, response) to a PostgreSQL database.
+- **RESTful API**: Built with FastAPI, offering intuitive endpoints and Swagger UI.
+- **Docker Support**: Fully containerized with Docker Compose for easy deployment.
+- **Environment Variables**: Securely manages API keys and database credentials via a `.env` file.
 
 ## Prerequisites
 
-- **Python**: Version 3.8 or higher.
+- **Python**: Version 3.8 or higher (for local runs).
+- **Docker**: Docker and Docker Compose (for containerized runs).
 - **API Key**: A valid RapidAPI key for the Twinword Emotion Analysis API (sign up at [RapidAPI](https://rapidapi.com/twinword/api/emotion-analysis-v1)).
 
-## Installation
+## Installation (Local)
 
 1. **Clone the Repository**:
 
    ```bash
    git clone https://github.com/emperialll/FastEmotionAPI.git
+   cd FastEmotionAPI
    ```
 
 2. **Set Up a Virtual Environment** (optional but recommended):
@@ -36,17 +40,23 @@ A simple FastAPI-based application that analyzes the emotional tone of user mess
    ```
 
 4. **Configure Environment Variables**:
-   - Copy the `.env.example` file to `.env`:
+
+   - Copy `.env.example` to `.env`:
      ```bash
      cp .env.example .env
      ```
-   - Open `.env` and replace `your_api_key_here` with your RapidAPI key:
+   - Edit `.env` with your RapidAPI key and PostgreSQL password:
      ```
      RAPIDAPI_KEY=your_api_key_here
      RAPIDAPI_HOST=twinword-emotion-analysis-v1.p.rapidapi.com
+     DB_PASSWORD=your_postgres_password_here
      ```
 
-## Running the Application
+5. **Set Up PostgreSQL Locally**:
+   - Install PostgreSQL (e.g., version 16) and ensure it’s running.
+   - Create a database: `psql -U postgres -c "CREATE DATABASE emotion_api_db;"`
+
+## Running Locally
 
 Start the FastAPI server:
 
@@ -54,13 +64,32 @@ Start the FastAPI server:
 python main.py
 ```
 
-The API will be available at `http://127.0.0.1:8000`. You can access the interactive Swagger UI at `http://127.0.0.1:8000/docs` for testing endpoints.
+The API will be available at `http://127.0.0.1:8000`, with Swagger UI at `http://127.0.0.1:8000/docs`.
+
+## Docker Setup
+
+To run the application with Docker Compose:
+
+1. **Prerequisites**: Install [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+2. **Configure Environment**: Ensure `.env` is set up with `RAPIDAPI_KEY`, `RAPIDAPI_HOST`, and `DB_PASSWORD`.
+3. **Build and Run**:
+   ```bash
+   docker-compose up --build
+   ```
+   - Access the API at `http://127.0.0.1:8000`.
+   - Test with:
+     ```bash
+     curl -X POST "http://127.0.0.1:8000/conversation" -H "Content-Type: application/json" -d '{"message": "I feel great!"}'
+     ```
+4. **Stop**: Press `Ctrl+C`, then:
+   - Keep data: `docker-compose down`
+   - Reset data: `docker-compose down -v`
 
 ## API Endpoints
 
 ### `GET /`
 
-- **Description**: A simple root endpoint to test the API.
+- **Description**: A root endpoint to test the API.
 - **Response**: JSON welcome message.
 - **Example**:
   ```bash
@@ -73,34 +102,51 @@ The API will be available at `http://127.0.0.1:8000`. You can access the interac
 
 ### `POST /conversation`
 
-- **Description**: Analyzes the emotion in a user’s message and returns a tailored reply.
+- **Description**: Analyzes a user’s message, detects emotions, saves the interaction to PostgreSQL, and returns emotions with a combined reply.
 - **Request Body**: JSON with a `message` field (string).
-- **Response**: Either a string reply or a JSON error object.
-- **Example**:
-  ```bash
-  curl -X POST "http://127.0.0.1:8000/conversation" \
-       -H "Content-Type: application/json" \
-       -d '{"message": "I just won the lottery!"}'
-  ```
-  **Response**:
-  ```
-  "That's awesome! Pure happiness!"
-  ```
-  - If no emotion is detected:
+- **Response**: JSON with detected emotions and reply, or an error message.
+- **Examples**:
+  - Single emotion:
+    ```bash
+    curl -X POST "http://127.0.0.1:8000/conversation" \
+         -H "Content-Type: application/json" \
+         -d '{"message": "I just won the lottery!"}'
     ```
-    "Hmm... I can't quite read the vibe. Want to try saying it another way?"
+    **Response**:
+    ```json
+    { "emotions": ["joy"], "response": "That's awesome! Pure happiness!" }
     ```
-  - If an error occurs:
+  - Multiple emotions:
+    ```bash
+    curl -X POST "http://127.0.0.1:8000/conversation" \
+         -H "Content-Type: application/json" \
+         -d '{"message": "I was stunned to see a stranger claiming to be me!"}'
+    ```
+    **Response**:
+    ```json
+    {
+      "emotions": ["surprise", "anger"],
+      "response": "Whoa! Didn't expect that! That's seriously frustrating!"
+    }
+    ```
+  - No emotion detected:
+    ```json
+    {
+      "response": "Hmm... I can't quite read the vibe. Want to try saying it another way?"
+    }
+    ```
+  - Error:
     ```json
     { "error": "Could not detect emotion." }
     ```
 
 ## How It Works
 
-1. **Input**: The user sends a message via the `/conversation` endpoint.
-2. **Emotion Detection**: The `emotion_detector.py` module queries the Twinword API with the message.
-3. **Response Generation**: The app checks the API response, extracts the primary emotion (if any), and selects a reply from a predefined dictionary.
-4. **Output**: Returns the reply or an error message if something goes wrong.
+1. **Input**: User sends a message via `/conversation`.
+2. **Emotion Detection**: `emotion_detector.py` queries the Twinword API.
+3. **Response Generation**: `main.py` combines predefined replies for all detected emotions.
+4. **Storage**: `db_manager.py` saves the message, emotions (as a string), and response to PostgreSQL.
+5. **Output**: Returns a JSON object with emotions and reply.
 
 ## Supported Emotions and Replies
 
@@ -113,7 +159,7 @@ The API will be available at `http://127.0.0.1:8000`. You can access the interac
 | Sadness  | "I'm sorry you're feeling that way." |
 | Disgust  | "Ugh, that's just gross."            |
 
-If no emotion is detected or an unrecognized emotion is returned, a fallback message is used.
+Multiple emotions combine replies with spaces (e.g., "joy, surprise" → "That's awesome! Pure happiness! Whoa! Didn't expect that!"). A fallback reply is used if no emotions are detected.
 
 ## Project Structure
 
@@ -121,31 +167,36 @@ If no emotion is detected or an unrecognized emotion is returned, a fallback mes
 fast-emotion-api/
 ├── main.py              # FastAPI app and endpoint definitions
 ├── emotion_detector.py  # Twinword API integration
-├── .env.example         # Example environment variable file
+├── db_manager.py        # PostgreSQL initialization and storage
+├── .env                 # Environment variables (not in repo)
+├── .env.example         # Template for environment variables
 ├── requirements.txt     # Project dependencies
+├── Dockerfile           # Docker config for the app
+├── docker-compose.yml   # Docker Compose config for app + PostgreSQL
 └── README.md            # This file
 ```
 
 ## Dependencies
 
-Listed in `requirements.txt`. Key libraries include:
+See `requirements.txt`. Key libraries:
 
-- `fastapi`: For building the API.
-- `uvicorn`: ASGI server to run the app.
-- `requests`: For making HTTP requests to the Twinword API.
-- `python-dotenv`: For loading environment variables.
-- `pydantic`: For request validation.
+- `fastapi`: API framework.
+- `uvicorn`: ASGI server.
+- `requests`: HTTP requests to Twinword API.
+- `psycopg2-binary`: PostgreSQL driver.
+- `python-dotenv`: Environment variable management.
+- `pydantic`: Request validation.
 
 ## Notes
 
-- The Twinword API requires a valid subscription on RapidAPI. Ensure your key is active and has quota available.
-- Error handling is basic in this version; enhance it for production use (e.g., logging, retry logic).
-- The app runs locally by default. For deployment, consider a production-grade server like Gunicorn with Uvicorn.
+- Requires an active RapidAPI subscription for Twinword API.
+- Error handling is basic; consider logging or retries for production.
+- Dockerized setup uses a persistent volume for PostgreSQL data.
 
 ## Contributing
 
-Feel free to submit issues or pull requests! Suggestions for new features (e.g., custom replies, multi-emotion support) are welcome.
+Submit issues or pull requests on GitHub. Ideas for enhancements (e.g., custom replies, advanced error handling) are welcome.
 
 ## License
 
-This project is unlicensed—free to use, modify, and distribute as you see fit.
+Unlicensed—free to use, modify, and distribute.

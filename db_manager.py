@@ -24,7 +24,7 @@ def get_db_connection():
                 dbname="emotion_api_db",
                 user="postgres",
                 password=os.getenv("DB_PASSWORD"),
-                host="localhost",
+                host=os.getenv("DB_HOST", "localhost"),
                 port="5432"
             )
             print("Database connection established.")
@@ -39,6 +39,8 @@ def init_db():
     Initializes the PostgreSQL database by creating the interactions table if it doesn't exist.
     Uses environment variables for connection details.
     """
+    conn = None
+    cur = None
     try:
         # Connect to the database
         conn = get_db_connection()
@@ -60,8 +62,8 @@ def init_db():
     except Exception as e:
         print(f"Error initializing database: {e}")
     finally:
-        # Close cursor (but not connection, as we reuse it)
-        if cur:
+        # Close cursor and connection only if they exist
+        if cur is not None:
             cur.close()
 
 
