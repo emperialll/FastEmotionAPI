@@ -40,7 +40,8 @@ These steps are required whether you plan to run the app locally or with Docker.
      RAPIDAPI_HOST=twinword-emotion-analysis-v1.p.rapidapi.com
      DB_PASSWORD=your_postgres_password_here  # Password for PostgreSQL (used locally and in Docker)
      ```
-   - Save the file. This `.env` file is loaded by both local and Docker setups.
+   - **Note on `DB_HOST`**:
+     - The `.env.example` includes `DB_HOST=db`, which is used in Docker to connect to the PostgreSQL container named `db`. For local runs, you don’t need to set `DB_HOST` in `.env`—it defaults to `localhost` in the code. Only add `DB_HOST` to `.env` if you’re running PostgreSQL on a different host locally (e.g., `DB_HOST=192.168.1.100`). For Docker, `DB_HOST=db` is set automatically by `docker-compose.yml`, so it’s not required in `.env` unless overriding the default Docker behavior.
 
 ## Running Locally
 
@@ -92,7 +93,7 @@ Follow these steps to run the app in a containerized environment using Docker Co
 
 2. **Build and Run**:
 
-   - Ensure your `.env` file is set up (from Initial Setup).
+   - Ensure your `.env` file is set up (from Initial Setup) with `RAPIDAPI_KEY`, `RAPIDAPI_HOST`, and `DB_PASSWORD`.
    - Run:
      ```bash
      docker-compose up --build
