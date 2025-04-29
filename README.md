@@ -18,7 +18,7 @@ A robust FastAPI-based application that analyzes the emotional tone of user mess
 - **API Key**: A valid RapidAPI key for the Twinword Emotion Analysis API (sign up at [RapidAPI](https://rapidapi.com/twinword/api/emotion-analysis-v1)).
 - **PostgreSQL**: Required for local runs (e.g., version 16).
 
-## Initial Setup
+## Initial Setup .
 
 These steps are required whether you plan to run the app locally or with Docker.
 
